@@ -1,11 +1,23 @@
 # opnsense
-OpnSense Custom Auto Block bad acting IP Addresses
 
-Create an Alias called AutoBlockedIPs.
+OpnSense Custom Auto Block bad acting IP Addresses as detected in the /var/log/filter.log file.
 
-Firewall -> Aliases -> 
+1) Copy actions_autoblock.conf to /usr/local/opnsense/service/conf/actions.d/
+2) Copy rc.autoupdate /to /usr/local/etc/
+3) Create an Alias called AutoBlockedIPs.
 
-Add outgoing Firewall Rule to WAN
+Firewall -> Aliases
+
+| Field       | Value                              |
+|-------------|------------------------------------|
+| Enabled     | checked                            |
+| Name        | AutoBlockedIPs                     |
+| Type        | URL (IPs)                          |
+| Content     | https://127.0.0.1/block-ips.txt    |
+| Statistics  | unchecked                          |
+| Description | Auto Block Bad Acting IP Addresses |
+
+4) Add outgoing Firewall Rule to WAN
 
 Firewall -> Rules -> WAN
 
@@ -30,9 +42,8 @@ Firewall -> Rules -> WAN
 | No XMLRPC Sync:           | unchecked                         |
 | Schedule:                 | none                              |
 | Gateway:                  | default                           |
-|---------------------------|-----------------------------------|
 
-Add incoming Firewall Rule to WAN
+5) Add incoming Firewall Rule to WAN
 
 Firewall -> Rules -> WAN
 
@@ -57,5 +68,4 @@ Firewall -> Rules -> WAN
 | No XMLRPC Sync:           | unchecked                         |
 | Schedule:                 | none                              |
 | Gateway:                  | default                           |
-|---------------------------|-----------------------------------|
 
