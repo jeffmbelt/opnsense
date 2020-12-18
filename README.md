@@ -69,3 +69,8 @@ Firewall -> Rules -> WAN
 | Schedule:                 | none                              |
 | Gateway:                  | default                           |
 
+Run the following to refresh the Available CRON job entries list.
+
+``` bash
+service configd restart
+```
