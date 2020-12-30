@@ -1,0 +1,61 @@
+#!/bin/sh
+
+# File: /usr/local/etc/rc.aws
+
+WAIT_TIME=900
+rm -f /tmp/block-ips.txt > /dev/null 2>&1
+trap stop EXIT
+
+# Go to https://bgpview.io/ to find AS IDs
+ASN_LIST="AS10124 AS14618 AS16509 AS38895 AS58588 AS62785 AS7224"
+
+update()
+{
+  
+  # Get AWS CIDRs
+  # curl -L https://ip-ranges.amazonaws.com/ip-ranges.json | grep '_prefix"' | cut -d\" -f4 > /tmp/aws_cidrs
+ 
+  cp /dev/null /tmp/aws_cidrs
+  for i in $ASN_LIST; do
+    whois -h whois.radb.net -- "-i origin $i" | awk '/^route:/ {print $2;}' | sort | uniq >> /tmp/aws_cidrs
+  done
+
+  # Make a header
+  echo "# Last Updated: `date`" > /usr/local/www/aws.txt
+  echo "# Total Entries: `sort -u /tmp/aws_cidrs | wc -l`" >> /usr/local/www/aws.txt
+  cat /tmp/aws_cidrs | sort | uniq >> /usr/local/www/aws.txt
+
+  # Clean up working file
+  rm -f /tmp/aws_cidrs
+
+  # Apply Updates
+  curl --header 'Content-Type: application/json' --basic --user 'JqUvDfSN7c5/mm28ZHLMSBoyKUpDE4oewD+/596PvCsUGPrIGCpu658wxbyy4qbB4Sa275Syk/2qsWQT:axQbRjC3U4+L+agULPmvqbKXClxxHBNHvEcumvzaBpcd0g7a9Malv65dQFlptdmDyOGswuVRG89BnNYF' --insecure --verbose --data '{"CIDR_Blocks_AWS"}' https://127.0.0.1/api/firewall/alias/reconfigure
+}
+
+start() {
+  update
+}
+
+stop() {
+  # Stop any running script
+  pkill rc.aws
+}
+ 
+query() {
+  echo 
+  echo -----
+  cat /usr/local/www/aws.txt | grep -v '^#' | wc -l
+  echo -----
+}
+
+restart() {
+  stop
+  start
+  query
+}
+
+update
+query
+
+# Exit sucessfully
+exit 0
