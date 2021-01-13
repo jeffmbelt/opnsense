@@ -53,7 +53,7 @@ Firewall -> Rules -> WAN
 | Disabled:                 | unchecked                         |
 | Quick:                    | checked                           |
 | Interface:                | WAN                               |
-| Direction:                | out                               |
+| Direction:                | in                                |
 | TCP/IP Version:           | IPv4                              |
 | Protocol:                 | any                               |
 | Source / Invert:          | unchecked                         |
