@@ -4,7 +4,7 @@ OpnSense Custom Auto update of alias lists to Block of bad acting IP Addresses a
 
 ## Prerequisits
 
-Create an OpnSense API key.  Instructions can be found [here]https://docs.opnsense.org/development/how-tos/api.html.
+Create an OpnSense API key.  Instructions can be found at https://docs.opnsense.org/development/how-tos/api.html.
 
 ## Implementation
 
