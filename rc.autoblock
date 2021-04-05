@@ -1,77 +1,57 @@
 #!/bin/sh
 
-# File: /usr/local/etc/rc.autoblock
+WAIT_TIME=600
 
-WAIT_TIME=900
-rm -f /tmp/block-ips.txt > /dev/null 2>&1
-trap stop EXIT
+update() {
 
-update()
-{
-  
-  # Generate Bad Acting IP Address Listing
-  grep -E ',21,|,22,|,23,|,25,|,53,|,80,|,110,|,137,|,138,|,139,|,443,|,445,|,5900,' /var/log/filter.log | grep ',em0,' | grep ',block,' | cut -d, -f19 | sort -u > /tmp/block-ips.txt
+# Generate Bad Acting IP Address Listing
+  grep ',em0,' /var/log/filter.log | grep ',block,' | cut -d, -f19 | sort -u > /tmp/blocked.txt
 
   # Sort and filter
-  echo "# Last Updated:	`date`" > /usr/local/www/block-ips.txt
-  echo "# Total Entries: `sort -u /tmp/block-ips.txt | grep -v '192\.168\.2' | grep -v '81\.171\.' | wc -l`" >> /usr/local/www/block-ips.txt
-  sort -u /tmp/block-ips.txt | grep -v '192\.168\.2' | grep -v '81\.171\.' >> /usr/local/www/block-ips.txt
+  echo "# Last Updated:	`date`" > /usr/local/www/blocked.txt
+  echo "# Total Entries: `sort -u /tmp/blocked.txt | grep -v '192\.168\.' | grep -v '81\.171\.' | wc -l`" >> /usr/local/www/blocked.txt
+  sort -u /tmp/blocked.txt | grep -v '192\.168\.2' | grep -v '81\.171\.' >> /usr/local/www/blocked.txt
 
   # Remove temp file
-  rm -f /tmp/block-ips.txt > /dev/null 2>&1
+  rm -f /tmp/blocked.txt > /dev/null 2>&1
 
-  # Apply Updates
-  curl --header 'Content-Type: application/json' --basic --user 'JqUvDfSN7c5/mm28ZHLMSBoyKUpDE4oewD+/596PvCsUGPrIGCpu658wxbyy4qbB4Sa275Syk/2qsWQT:axQbRjC3U4+L+agULPmvqbKXClxxHBNHvEcumvzaBpcd0g7a9Malv65dQFlptdmDyOGswuVRG89BnNYF' --insecure --verbose --data '{"AutoBlockedIPs"}' https://127.0.0.1/api/firewall/alias/reconfigure
- 
-  # Exit successfully
-  exit 0
+  curl \
+	--header 'Content-Type: application/json' \
+	--basic \
+	--user 'key:secret' \
+	--insecure \
+	--verbose \
+	--data '{"BlockedAuto"}' \
+	https://127.0.0.1/api/firewall/alias/reconfigure
+  query;
 }
 
 start() {
-  while [ 1 -lt 10 ]; do
+  update;
 
-    # Generate Bad Acting IP Address Listing
-    grep -E ',21,|,22,|,23,|,25,|,53,|,80,|,110,|,137,|,138,|,139,|,443,|,445,|,5900,' /var/log/filter.log | grep ',em0,' | grep ',block,' | cut -d, -f19 | sort -u > /tmp/block-ips.txt
-  
-    # Sort and filer
-    sort -u /tmp/block-ips.txt | grep -v '192\.168\.2' | grep -v '81\.171\.' > /usr/local/www/block-ips.txt
-
-    # Remove temp files
-    rm -f /tmp/block-ips.txt > /dev/null 2>&1
-
-    # Apply Updates
-    curl --header 'Content-Type: application/json' --basic --user 'JqUvDfSN7c5/mm28ZHLMSBoyKUpDE4oewD+/596PvCsUGPrIGCpu658wxbyy4qbB4Sa275Syk/2qsWQT:axQbRjC3U4+L+agULPmvqbKXClxxHBNHvEcumvzaBpcd0g7a9Malv65dQFlptdmDyOGswuVRG89BnNYF' --insecure --verbose --data '{"AutoBlockedIPs"}' https://127.0.0.1/api/firewall/alias/reconfigure
-
-    # Wait for next run
-    sleep $WAIT_TIME
-  done
-
-  # Exit successfully
-  exit 0
 }
 
 stop() {
-  # Stop any running script
-  pkill rc.autoblock
-
-  # Exit successfully
   exit 0
 }
  
 query() {
   echo 
   echo -----
-  wc -l /usr/local/www/block-ips.txt
+  head -2 /usr/local/www/blocked.txt
   echo -----
-
-  # Exit successfully
-  exit 0
 }
 
 restart() {
-  stop
   start
   query
 }
 
-update
+if [ $# -lt 1 ]; then
+  update
+else
+  $1
+fi
+
+# Exit sucessfully
+exit 0
