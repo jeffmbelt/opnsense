@@ -90,7 +90,7 @@ Firewall -> Rules -> WAN
 | Schedule:                 | none                              |
 | Gateway:                  | default                           |
 
-9) Add outgoing Firewall Rule to WAN
+9) Add outgoing Firewall Rule to WAN, put these before any GeoBlock rules so the services will work regardless of country blocking rules.
 
 Firewall -> Rules -> WAN
 
