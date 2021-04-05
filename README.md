@@ -146,5 +146,10 @@ service configd restart
 
 System -> Settings -> CRON
 
-  a) Update Allowed Destination Alias List
-  b) Update Auto Deny Destination Alias List
+  Update Allowed Destination Alias
+  
+ 12) Add CRON entries for Block and Allow lists
+
+System -> Settings -> CRON
+
+  Update Auto Blocked Alias
