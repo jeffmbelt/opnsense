@@ -1,6 +1,12 @@
 # opnsense
 
-OpnSense Custom Auto Block bad acting IP Addresses as detected in the /var/log/filter.log file.
+OpnSense Custom Auto update of alias lists to Block of bad acting IP Addresses as detected in the /var/log/filter.log file.  Also includes auto allow for service IP addresses such as Amazon, Facebook, Microsoft, etc..
+
+## Prerequisits
+
+Create an OpnSense API key.  Instructions can be found [here]https://docs.opnsense.org/development/how-tos/api.html.
+
+## Implementation
 
 1) Copy actions_autoblock.conf to /usr/local/opnsense/service/conf/actions.d/
 2) Copy actions_autoallow.conf to /usr/local/opnsense/service/conf/actions.d/
