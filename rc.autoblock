@@ -1,7 +1,5 @@
 #!/bin/sh
 
-WAIT_TIME=600
-
 update() {
 
 # Generate Bad Acting IP Address Listing
