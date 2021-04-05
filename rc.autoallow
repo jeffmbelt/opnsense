@@ -1,0 +1,76 @@
+#!/bin/sh
+
+# File: /usr/local/etc/rc.allowed
+
+WAIT_TIME=900
+rm -f /tmp/block-ips.txt > /dev/null 2>&1
+trap stop EXIT
+
+# Go to https://bgpview.io/ to find AS IDs
+ASN_FACEBOOK="AS32934 AS54115 AS63293"
+ASN_AWS="AS10124 AS14618 AS16509 AS38895 AS58588 AS62785 AS7224"
+ASN_MICROSOFT="AS8075"
+ASN_FASTLY="AS54113"
+ASN_APPLE="AS6185 AS714"
+
+# Combine ASN blocks into list
+ASN_LIST="$ASN_FACEBOOK $ASN_AWS $ASN_MICROSOFT $ASN_FASTLY $ASN_APPLE"
+
+update()
+{
+
+  # Get ASN CIDR blocks
+  cp /dev/null /tmp/allowed_cidrs
+  for i in $ASN_LIST; do
+    whois -h whois.radb.net -- "-i origin $i" | awk '/^route:/ {print $2;}' | sort | uniq >> /tmp/allowed_cidrs
+  done
+
+  # Make a header
+  echo "# Last Updated: `date`" > /usr/local/www/allowed.txt
+  echo "# Total Entries: `sort -u /tmp/allowed_cidrs | wc -l`" >> /usr/local/www/allowed.txt
+  cat /tmp/allowed_cidrs | sort | uniq >> /usr/local/www/allowed.txt
+
+  # Clean up working file
+  rm -f /tmp/allowed_cidrs
+
+  # Apply Updates
+  curl \
+        --header 'Content-Type: application/json' \
+        --basic \
+        --user 'key:secret' \
+        --insecure \
+        --verbose \
+        --data '{"AllowedAuto"}' \
+        https://127.0.0.1/api/firewall/alias/reconfigure
+  query;
+}
+
+start() {
+  update;
+
+}
+
+stop() {
+  exit 0
+}
+
+query() {
+  echo
+  echo -----
+  head -2 /usr/local/www/allowed.txt
+  echo -----
+}
+
+restart() {
+  start
+  query
+}
+
+if [ $# -lt 1 ]; then
+  start
+else
+  $1
+fi
+
+# Exit sucessfully
+exit 0
