@@ -35,6 +35,8 @@ update()
   # Clean up working file
   rm -f /tmp/allowed_cidrs
 
+  (sleep 15 && ps -aux | grep curl | grep -v grep | awk '{print $2}' | xargs kill ) &
+
   # Apply Updates
   curl \
         --header 'Content-Type: application/json' \
@@ -48,10 +50,10 @@ update()
 }
 
 start() {
-  while [ 1 -le 2 ]; do
+#  while [ 1 -le 2 ]; do
     update;
-    sleep 7200 
-  done
+#    sleep 7200 
+#  done
 
 }
 
