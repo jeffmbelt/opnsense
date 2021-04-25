@@ -28,6 +28,8 @@ update() {
   # Remove temp file
   rm -f /tmp/blocked.txt > /dev/null 2>&1
 
+  (sleep 15 && ps -aux | grep curl | grep -v grep | awk '{print $2}' | xargs kill ) &
+
   curl \
 	--header 'Content-Type: application/json' \
 	--basic \
@@ -40,10 +42,10 @@ update() {
 }
 
 start() {
-  while [ 1 -le 2 ]; do
+#  while [ 1 -le 2 ]; do
     update;
-    sleep 600 &
-  done
+#    sleep 600 &
+#  done
 }
 
 stop() {
