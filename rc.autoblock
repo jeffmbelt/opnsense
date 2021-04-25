@@ -1,13 +1,28 @@
 #!/bin/sh
 
+WAIT_TIME=600
+
+# DoD Network Information Center
+ASN_USG="AS8003 AS721 AS1590"
+
+# Combine ASN blocks into list
+ASN_LIST="$ASM_USG"
+
 update() {
 
 # Generate Bad Acting IP Address Listing
-  grep ',em0,' /var/log/filter.log | grep ',block,' | cut -d, -f19 | sort -u > /tmp/blocked.txt
+  grep ',em0,' /var/log/filter.log | grep ',block,' | cut -d, -f19 > /tmp/blocked.txt
+  grep ',em0,' /var/log/filter/*.log | grep ',block,' | cut -d, -f19 >> /tmp/blocked.txt
+
+  # Get ASN CIDR blocks
+  cp /dev/null /tmp/blocked_cidrs
+  for i in $ASN_LIST; do
+    whois -h whois.radb.net -- "-i origin $i" | awk '/^route:/ {print $2;}' >> /tmp/blocked.txt
+  done
 
   # Sort and filter
   echo "# Last Updated:	`date`" > /usr/local/www/blocked.txt
-  echo "# Total Entries: `sort -u /tmp/blocked.txt | grep -v '192\.168\.' | grep -v '81\.171\.' | wc -l`" >> /usr/local/www/blocked.txt
+  echo "# Total Entries: `sort -u /tmp/blocked.txt | grep -v '192\.168\.2' | grep -v '81\.171\.' | wc -l`" >> /usr/local/www/blocked.txt
   sort -u /tmp/blocked.txt | grep -v '192\.168\.2' | grep -v '81\.171\.' >> /usr/local/www/blocked.txt
 
   # Remove temp file
@@ -16,21 +31,23 @@ update() {
   curl \
 	--header 'Content-Type: application/json' \
 	--basic \
-	--user 'key:secret' \
+	--user 'cZN4fENMpaAcATXm51JOiFksGlZLPnsPTtrGnVy78g3FbnIGJq/K7wkQc3AN1ctrZD/m1efJG4Y9AC9X:F8teRnMaHHw+xrMPONDaLI08rjlYBd/Ot8dPSDCRoifJ2nwgTNgampRzBN5CkTFn9xkV4foqoBIhLmC/' \
 	--insecure \
 	--verbose \
-	--data '{"BlockedAuto"}' \
+	--data '{"AutoBlocked"}' \
 	https://127.0.0.1/api/firewall/alias/reconfigure
   query;
 }
 
 start() {
-  update;
-
+  while [ 1 -le 2 ]; do
+    update;
+    sleep 600 &
+  done
 }
 
 stop() {
-  exit 0
+  pkill rc.autoblock
 }
  
 query() {
@@ -41,12 +58,14 @@ query() {
 }
 
 restart() {
-  start
+  stop
+  start 
   query
 }
 
 if [ $# -lt 1 ]; then
-  update
+  start
+  query
 else
   $1
 fi

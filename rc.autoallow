@@ -7,14 +7,16 @@ rm -f /tmp/block-ips.txt > /dev/null 2>&1
 trap stop EXIT
 
 # Go to https://bgpview.io/ to find AS IDs
-ASN_FACEBOOK="AS32934 AS54115 AS63293"
-ASN_AWS="AS10124 AS14618 AS16509 AS38895 AS58588 AS62785 AS7224"
-ASN_MICROSOFT="AS8075"
-ASN_FASTLY="AS54113"
 ASN_APPLE="AS6185 AS714"
+ASN_AWS="AS10124 AS14618 AS16509 AS38895 AS58588 AS62785 AS7224"
+ASN_FASTLY="AS54113"
+ASN_FACEBOOK="AS32934 AS54115 AS63293"
+ASN_GOOGLE="AS15169 AS16550 AS16591 AS19448 AS19527 AS22859 AS26684 AS26910 AS36039 AS36384 AS36385 AS36492 AS394507 AS394639 AS394699 AS395973AS396982 AS55023 AS6432"
+ASN_MICROSOFT="AS8075"
+ASN_PINTEREST="AS53620"
 
 # Combine ASN blocks into list
-ASN_LIST="$ASN_FACEBOOK $ASN_AWS $ASN_MICROSOFT $ASN_FASTLY $ASN_APPLE"
+ASN_LIST="$ASN_APPLE $ASN_AWS $ASN_FACEBOOK $ASN_GOOGLE $ASN_FASTLY $ASN_MICROSOFT $ASN_PINTEREST"
 
 update()
 {
@@ -37,21 +39,24 @@ update()
   curl \
         --header 'Content-Type: application/json' \
         --basic \
-        --user 'key:secret' \
+        --user 'cZN4fENMpaAcATXm51JOiFksGlZLPnsPTtrGnVy78g3FbnIGJq/K7wkQc3AN1ctrZD/m1efJG4Y9AC9X:F8teRnMaHHw+xrMPONDaLI08rjlYBd/Ot8dPSDCRoifJ2nwgTNgampRzBN5CkTFn9xkV4foqoBIhLmC/' \
         --insecure \
         --verbose \
-        --data '{"AllowedAuto"}' \
+        --data '{"AutoAllowed"}' \
         https://127.0.0.1/api/firewall/alias/reconfigure
   query;
 }
 
 start() {
-  update;
+  while [ 1 -le 2 ]; do
+    update;
+    sleep 7200 
+  done
 
 }
 
 stop() {
-  exit 0
+  pkill rc.autoallow
 }
 
 query() {
@@ -62,12 +67,14 @@ query() {
 }
 
 restart() {
+  stop
   start
   query
 }
 
 if [ $# -lt 1 ]; then
   start
+  query
 else
   $1
 fi
