@@ -1,0 +1,22 @@
+<?php
+
+  include("notices.inc");
+
+  if (!empty($argv[1])) {
+    $if = $argv[1];
+  } else {
+    $if = "em0";
+  }
+
+  exec("/sbin/rtsol -DF $if 2>&1", $result, $retval);
+  if (($retval == 0) && (count($result))) {
+    $haystack = implode("\n", $result);
+    $needle = "received RA from [a-f0-9:\.]+ on $if";
+    preg_match("/$needle/", $haystack, $matches);
+    if (count($matches)) {
+      $msg = "IPv6 RAs detected on interface $if";
+      notify_via_smtp($msg);
+    }
+  }
+
+?>
